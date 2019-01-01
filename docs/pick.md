@@ -58,10 +58,7 @@ state = state[0].name;
 `range` is a string in `start:end:step` format. Internally it is compiled to
 a predicate function and applied as a filter.
 
-You can ommit values, like `1:` to skip first element.
-
-Or `:-1` to skip the last element.
-
+You can ommit values, like `1:` to skip first element. Or `:-1` to skip the last element.
 As you can see, you can also use negative values, for example, `-1:` to select
 only te last value.
 
