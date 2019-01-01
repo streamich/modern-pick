@@ -79,7 +79,6 @@ describe('pick()', () => {
 
   test('can filter object keys', () => {
     const picker = pick`${b => b.time > 110}[0].name`;
-    pf(picker);
     const res = picker({
       a: {
         time: 100,
@@ -91,5 +90,35 @@ describe('pick()', () => {
       },
     });
     expect(res).toEqual('bar');
+  });
+
+  test('can select range', () => {
+    const picker = pick`${'0:3'}`;
+    const res = picker([0, 1, 2, 3, 4, 5, 6]);
+    expect(res).toEqual([0, 1, 2]);
+  });
+
+  test('can select last element', () => {
+    const picker = pick`${'-1:'}`;
+    const res = picker([0, 1, 2, 3, 4, 5, 6]);
+    expect(res).toEqual([6]);
+  });
+
+  test('exclude last element', () => {
+    const picker = pick`${':-1'}`;
+    const res = picker([0, 1, 2, 3, 4, 5, 6]);
+    expect(res).toEqual([0, 1, 2, 3, 4, 5]);
+  });
+
+  test('select even elements', () => {
+    const picker = pick`${'::2'}`;
+    const res = picker([0, 1, 2, 3, 4, 5, 6]);
+    expect(res).toEqual([0, 2, 4, 6]);
+  });
+
+  test('select odd elements', () => {
+    const picker = pick`${'1::2'}`;
+    const res = picker([0, 1, 2, 3, 4, 5, 6]);
+    expect(res).toEqual([1, 3, 5]);
   });
 });
