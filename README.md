@@ -83,7 +83,7 @@ const getUsersOver = (over) => (state, def) => {
     state = Object.values(state);
     state = state.filter(u => u.age > over);
     state = state.filter((_, i) => i === state.length - 1);
-    state = stat.map(({id, name}) => ({id, name}));
+    state = state.map(({id, name}) => ({id, name}));
     return state;
   } catch {
     return def;
