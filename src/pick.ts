@@ -74,7 +74,6 @@ const codegenFilter = (index: number) => {
     `_=arr.filter(function(v,i){` +
       'try{' +
         `var r=x[${index}](v,i,arr.length,arr,_,$);` +
-        'console.log(a);' +
         'return r instanceof Function ? r.apply(null, a) : r' +
       '}catch(e){' +
         'return false' +
@@ -107,15 +106,17 @@ export const pick = <A, B>(
         nextInterpolationIsAccessor = true;
         accessor = accessor.substr(0, accessor.length - ACCESSOR_OPERATOR.length);
       }
-      if (accessor.startsWith(MAP_OPERATOR)) {
-        if (accessor.length === MAP_OPERATOR.length) {
-          nextInterpolationIsMap = true;
+      if (accessor) {
+        if (accessor.startsWith(MAP_OPERATOR)) {
+          if (accessor.length === MAP_OPERATOR.length) {
+            nextInterpolationIsMap = true;
+          } else {
+            body += codegenAccessorMap(trim(accessor.substr(MAP_OPERATOR.length)));
+          }
+          currentValueIsArray = true;
         } else {
-          body += codegenAccessorMap(trim(accessor.substr(MAP_OPERATOR.length)));
+          body += codegenAccessor(accessor);
         }
-        currentValueIsArray = true;
-      } else {
-        body += codegenAccessor(accessor);
       }
     }
   };
@@ -123,7 +124,7 @@ export const pick = <A, B>(
   const applyInterpolation = (interpolation, i) => {
     if (nextInterpolationIsAccessor) {
       if (interpolation instanceof Function) {
-        const accessor = `[a[${functionalInterpolationAccessorIndex}]]`;
+        const accessor = `[x[${i}].apply(null,a)]`;
         body += codegenAccessor(accessor);
         functionalInterpolationAccessorIndex++;
       } else {
