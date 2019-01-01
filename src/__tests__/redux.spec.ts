@@ -1,5 +1,4 @@
 import {pick} from '..';
-import {ancestorWhere} from 'tslint';
 
 const state = {
   ui: {
@@ -87,4 +86,8 @@ test('complex query parametrized', () => {
   // console.log(require('js-beautify').js_beautify(picker.toString(), {indent_size: 2}));
   const res = picker(50)(state);
   expect(res.length).toBe(1);
+});
+
+test('select user by ID', () => {
+
 });
