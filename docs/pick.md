@@ -82,8 +82,8 @@ pick`.${'a'}`()({a: 'b'}) // 👉 b
 
 ## `.${fn}` Interpolated Functional Accessors
 
-Instead of specifyin a constant value, you can also use a function. This
-fuction receives all the arguments supplied to your selector.
+Instead of specifying a constant value, you can also use a function. This
+function receives all the arguments supplied to your selector.
 
 ```js
 const selector = pick`users.${id => id}`;
