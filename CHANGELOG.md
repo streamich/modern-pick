@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/streamich/modern-pick/compare/v1.0.0...v1.1.0) (2019-01-01)
+
+
+### Features
+
+* 🎸 improve pick() and add demo tests ([bbf0df6](https://github.com/streamich/modern-pick/commit/bbf0df6))
+
 # 1.0.0 (2019-01-01)
 
 
