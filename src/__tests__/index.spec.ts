@@ -196,14 +196,12 @@ describe('JSONPath examples', () => {
 
   test('select last book', () => {
     const picker = pick`store.book${'-1:'}[0]`;
-    pf(picker);
     const res = picker(data);
     expect(res).toEqual(data.store.book[data.store.book.length - 1]);
   });
 
   test('select fist two books', () => {
     const picker = pick`store.book${':2'}`;
-    pf(picker);
     const res = picker(data);
     expect(res).toEqual([data.store.book[0], data.store.book[1]]);
   });

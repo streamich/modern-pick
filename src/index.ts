@@ -3,6 +3,7 @@ export type Picker<A, B> = (data: A) => B;
 const REG_TRIM = /^\s+|\s+$/g;
 const trim = (str: string): string => str.replace(REG_TRIM, '');
 const MAP_OPERATOR = '->';
+const ACCESSOR_OPERATOR = '.';
 
 const rangeToPredicate = (range: string) => {
   const parts = range.split(':');
@@ -21,123 +22,169 @@ const rangeToPredicate = (range: string) => {
   };
 };
 
+const arr = 'Array.isArray(_)?_:Object.values(_)';
+
+const codegenAccessor = (accessor: string) => {
+  if (accessor[0] === '{') {
+    // prettier-ignore
+    return (
+      `_=((${accessor})=>(${accessor}))(_);`
+    );
+  } else {
+    if (accessor[0] !== '.' && accessor[0] !== '[') accessor = '.' + accessor;
+    // prettier-ignore
+    return (
+      `_=_${accessor};`
+    );
+  }
+};
+
+const codegenAccessorMap = (accessor: string) => {
+  if (accessor[0] === '{') {
+    // prettier-ignore
+    return (
+      `_=(${arr}).map((${accessor})=>{` +
+        'try{' +
+          `return ${accessor}` +
+        '}catch(e){' +
+          'return {}' +
+        '}' +
+      '});'
+    );
+  } else {
+    if (accessor[0] !== '.' && accessor[0] !== '[') accessor = '.' + accessor;
+    // prettier-ignore
+    return (
+      `_=(${arr}).map(function(v){` +
+        'try{' +
+          `return v${accessor}` +
+        '}catch(e){' +
+          'return d' +
+        '}' +
+      '});'
+    );
+  }
+};
+
+const codegenFilter = (index: number) => {
+  // prettier-ignore
+  return (
+    `var arr=${arr};` +
+    `_=arr.filter(function(v,i){` +
+      'try{' +
+        `return x[${index}](v,i,arr.length,arr,_,$)` +
+      '}catch(e){' +
+        'return false' +
+      '}' +
+    '});'
+  );
+};
+
 /**
- * In generated code `$` refers to the root value, similar to how it is in JSONPath.
- * We cannot use `@` in JavaScript to refer to the current value though, thus
- * current value is denoted by `_`.
- *
- * `x` is a list of interpolations.
+ * - In generated code `$` refers to the root value, similar to how it is in JSONPath.
+ * - We cannot use `@` in JavaScript to refer to the current value though, thus
+ *   current value is denoted by `_`.
+ * - `x` is a list of interpolations.
+ * - `a` is an array of interpolation arguments.
  */
 export const pick = <A, B>(
   accessors: TemplateStringsArray,
   ...interpolations: (number | string | Function)[]
 ): Picker<A, B> => {
-  const arr = 'Array.isArray(_)?_:Object.values(_)';
-
-  const applyAccessor = (accessor: string) => {
-    if (accessor[0] === '{') {
-      // prettier-ignore
-      return (
-        `_=((${accessor})=>(${accessor}))(_);`
-      );
-    } else {
-      if (accessor[0] !== '.' && accessor[0] !== '[') accessor = '.' + accessor;
-      // prettier-ignore
-      return (
-        `_=_${accessor};`
-      );
-    }
-  };
-
-  const applyAccessorMap = (accessor: string) => {
-    if (accessor[0] === '{') {
-      // prettier-ignore
-      return (
-        `_=(${arr}).map((${accessor})=>{` +
-          'try{' +
-            `return ${accessor}` +
-          '}catch(e){' +
-            'return {}' +
-          '}' +
-        '});'
-      );
-    } else {
-      if (accessor[0] !== '.' && accessor[0] !== '[') accessor = '.' + accessor;
-      // prettier-ignore
-      return (
-        `_=(${arr}).map(function(v){` +
-          'try{' +
-            `return v${accessor}` +
-          '}catch(e){' +
-            'return d' +
-          '}' +
-        '});'
-      );
-    }
-  };
-
-  const applyFilter = (index: number) => {
-    // prettier-ignore
-    return (
-      `var arr=${arr};` +
-      `_=arr.filter(function(v,i){` +
-        'try{' +
-          `return x[${index}](v,i,arr.length,arr,_,$)` +
-        '}catch(e){' +
-          'return false' +
-        '}' +
-      '});'
-    );
-  };
-
-  const accessor = trim(accessors[0]);
-  let body: string = accessor ? applyAccessor(accessor) : '';
   let currentValueIsArray = false;
   let nextInterpolationIsMap = false;
+  let nextInterpolationIsAccessor = false;
+  let functionalInterpolationAccessorIndex = 0;
+  let body: string = '';
 
-  for (let i = 0; i < interpolations.length; i++) {
-    const interpolation = interpolations[i];
-    if (nextInterpolationIsMap) {
-      // TODO: not implemented.
-    } else if (interpolation instanceof Function) {
-      body += applyFilter(i);
-      currentValueIsArray = true;
-    } else if (typeof interpolation === 'string') {
-      interpolations[i] = rangeToPredicate(interpolation);
-      body += applyFilter(i);
-      currentValueIsArray = true;
-    }
-
-    const accessor = trim(accessors[i + 1]);
+  const applyAccessor = (accessor) => {
+    accessor = trim(accessor);
     if (accessor) {
+      if (accessor.endsWith(ACCESSOR_OPERATOR)) {
+        nextInterpolationIsAccessor = true;
+        accessor = accessor.substr(0, accessor.length - ACCESSOR_OPERATOR.length);
+      }
       if (accessor.startsWith(MAP_OPERATOR)) {
         if (accessor.length === MAP_OPERATOR.length) {
           nextInterpolationIsMap = true;
         } else {
-          body += applyAccessorMap(accessor.substr(MAP_OPERATOR.length));
+          body += codegenAccessorMap(trim(accessor.substr(MAP_OPERATOR.length)));
         }
         currentValueIsArray = true;
       } else {
-        body += applyAccessor(accessor);
+        body += codegenAccessor(accessor);
       }
     }
+  };
+
+  applyAccessor(accessors[0]);
+
+  for (let i = 0; i < interpolations.length; i++) {
+    const interpolation = interpolations[i];
+    if (nextInterpolationIsAccessor) {
+      if (interpolation instanceof Function) {
+        const accessor = `[a[${functionalInterpolationAccessorIndex}]]`;
+        body += codegenAccessor(accessor);
+        functionalInterpolationAccessorIndex++;
+      } else {
+        const accessor = trim(String(interpolation));
+        body += codegenAccessor(`[${JSON.stringify(accessor)}]`);
+      }
+    } else if (nextInterpolationIsMap) {
+      // TODO: not implemented.
+    } else if (interpolation instanceof Function) {
+      body += codegenFilter(i);
+      currentValueIsArray = true;
+    } else if (typeof interpolation === 'string') {
+      interpolations[i] = rangeToPredicate(interpolation);
+      body += codegenFilter(i);
+      currentValueIsArray = true;
+    }
+
+    nextInterpolationIsAccessor = false;
+    applyAccessor(accessors[i + 1]);
   }
 
   // prettier-ignore
   const code: string =
     '(function(x){' +
-      'return function($,d){' +
-        'var _=$;' +
-        'try{' +
-          body +
-          'return _' +
-        '}catch(e){' +
-          'console.log(e);' +
-          'return d' +
+      'return function(){' +
+        'var a=arguments;' +
+        'return function($,d){' +
+          'var _=$;' +
+          'try{' +
+            body +
+            'return _' +
+          '}catch(e){' +
+            // 'console.log(e);' +
+            'return d' +
+          '}' +
         '}' +
       '}' +
     '})';
 
+  // console.log(require('js-beautify').js_beautify(code, {indent_size: 2}));
+
   // tslint:disable-next-line no-eval ban
-  return eval(code)(interpolations);
+  let picker = eval(code)(interpolations);
+  if (!functionalInterpolationAccessorIndex) picker = picker();
+
+  return picker;
 };
+
+export const idx = selector => (state, def?) => {
+  try {
+    return selector(state);
+  } catch {
+    return def;
+  }
+};
+
+/**
+ * Identity function. Useful for Redux normalized data pickers.
+ *
+ * ```js
+ * pick`users.${id}`
+ * ```
+ */
+export const id = x => x;
