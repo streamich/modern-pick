@@ -68,13 +68,13 @@ const getUsersOver = pick`
 
 Let's break it down.
 
-- `users.byId` &mdash; this is a "selector" aka accessor, it is compiled to `(state) => state.users.byId`.
-- `${u => over => u.age > over}` &mdash; this is a filter expression it is compiled to `over => state => state.filter(u => over => u.age > over)`
-- `${'-1:'}` &mdash; this is a range expression in `start:end:step` format, it is compiled internally to a filter expression.
-- `->` &mdash; map operator `->` tells us to do `.map()` over the result set.
-- `{id,name}` &mdash; destructuring accessor is internally compiled to `({id,name}) => ({id,name})`.
+- `users.byId` &mdash; this is an *accessor*, it is compiled to `state = state.users.byId`.
+- `${u => over => u.age > over}` &mdash; this *filter* expression is compiled to `state = state.filter(u => u.age > over)`.
+- `${'-1:'}` &mdash; this is a range expression in `start:end:step` format, it is compiled internally to a *filter*, too.
+- `->` &mdash; *map* operator `->` tells us to do `state = state.map(...)` over the result set.
+- `{id,name}` &mdash; *destructuring accessor* is internally compiled to `({id, name}) => ({id, name})`.
 
-All in all the above query is compiled to something like this:
+All-in-all the above query is compiled to a JavaScript function like this:
 
 ```js
 const picker = (over) => (state, def) => {
@@ -83,7 +83,7 @@ const picker = (over) => (state, def) => {
     state = Object.values(state);
     state = state.filter(u => u.age > over);
     state = state.filter((_, i) => i === state.length - 1);
-    state = (({id, name}) => ({id, name}))(state);
+    state = stat.map(({id, name}) => ({id, name}));
     return state;
   } catch {
     return def;
