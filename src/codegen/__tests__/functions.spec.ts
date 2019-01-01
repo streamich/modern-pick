@@ -15,4 +15,12 @@ describe('ArrowFunction', () => {
     ));
     expect(String(res)).toBe('(a,b,c)=>{a=(a+b);return c;}');
   });
+
+  test('allow array instead of block statement', () => {
+    const res = fn(args('a', 'b', 'c'), [
+      e('a', '=', e('a', '+', 'b')),
+      ret(e('c')),
+    ]);
+    expect(String(res)).toBe('(a,b,c)=>{a=(a+b);return c;}');
+  });
 });

@@ -1,4 +1,4 @@
-import {BlockStatement} from "./statements";
+import {BlockStatement, AnyStatementOrExpression, block} from "./statements";
 import {Expression} from "./expressions";
 
 export class ArrowFunction {
@@ -17,7 +17,9 @@ export class ArrowFunction {
   }
 }
 
-export const fn = (args: Expression, body: BlockStatement, isAsync?: boolean) => {
-
+export const fn = (args: Expression, body: AnyStatementOrExpression[] | BlockStatement, isAsync?: boolean) => {
+  if (Array.isArray(body)) {
+    body = block(...body);
+  }
   return new ArrowFunction(args, body, isAsync);
 };

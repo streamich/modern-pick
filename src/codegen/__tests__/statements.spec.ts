@@ -1,4 +1,4 @@
-import {st, block, fi, ret} from '../statements';
+import {st, block, fi, ret, decl} from '../statements';
 import {expr, call, e} from '../expressions';
 
 describe('Statement', () => {
@@ -115,5 +115,17 @@ describe('ReturnStatement', () => {
   test('generates return keyworkd with semicolon', () => {
     const res = ret(e('abc'));
     expect(String(res)).toBe('return abc;');
+  });
+});
+
+describe('DeclarationStatement', () => {
+  test('can declare default let variable', () => {
+    const res = decl(e('a'));
+    expect(String(res)).toBe('let a;');
+  });
+
+  test('can declare const variable', () => {
+    const res = decl(e('a', '=', 125), 'const');
+    expect(String(res)).toBe('const a=125;');
   });
 });

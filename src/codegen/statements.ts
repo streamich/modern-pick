@@ -58,6 +58,20 @@ export class ReturnStatement {
   }
 }
 
+export class DeclarationStatement {
+  expr: Expression;
+  type: 'const' | 'let' | 'var';
+
+  constructor (expr: Expression, type: 'const' | 'let' | 'var') {
+    this.expr = expr;
+    this.type = type;
+  }
+
+  toString () {
+    return `${this.type} ${this.expr};`;
+  }
+}
+
 export const st = (...expressions: Expression[]) => new Statement(expressions);
 export const block = (...expressions: AnyStatementOrExpression[]) => new BlockStatement(expressions);
 export const fi = (test: Expression, ifBlock: Expression | Expression[] | BlockStatement, elseBlock?: Expression | Expression[] | BlockStatement) => {
@@ -76,3 +90,5 @@ export const fi = (test: Expression, ifBlock: Expression | Expression[] | BlockS
   return new IfStatement(test, ifBlock, elseBlock);
 };
 export const ret = (expression: Expression) => new ReturnStatement(expression);
+export const decl = (expression: Expression, type: 'const' | 'let' | 'var' = 'let') =>
+  new DeclarationStatement(expression, type);
