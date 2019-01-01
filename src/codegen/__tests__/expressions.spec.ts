@@ -1,4 +1,4 @@
-import {Expression, expr, exprPrefix, args, call} from '../expressions';
+import {Expression, expr, exprPrefix, args, call, e, rest} from '../expressions';
 
 test('is a constructor', () => {
   expect(Expression).toBeInstanceOf(Function);
@@ -50,4 +50,9 @@ test('call expression with single identifier argument', () => {
 test('console.log(1, 2, 3) call expression', () => {
   const expr1 = call(expr('console', '.', 'log'), 1, 2, 3);
   expect('' + expr1).toBe('console.log(1,2,3)');
+});
+
+describe('rest()', () => {
+  const expr1 = rest(e('hello'));
+  expect(String(expr1)).toBe('...hello');
 });
