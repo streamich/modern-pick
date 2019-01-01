@@ -26,7 +26,7 @@ test('supports prefix operator', () => {
   expect('' + expr1).toBe('--i');
 });
 
-test('supports nexted prefix operators', () => {
+test('supports nested prefix operators', () => {
   const expr1 = expr('a', '.', 'b');
   const expr2 = exprPrefix('--', expr1);
   expect(String(expr2)).toBe('--(a.b)');
