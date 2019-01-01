@@ -1,40 +1,40 @@
 import {pick} from '..';
 
 const data = {
-  "store": {
-    "book": [
+  store: {
+    book: [
       {
-        "category": "reference",
-        "author": "Nigel Rees",
-        "title": "Sayings of the Century",
-        "price": 8.95
+        category: 'reference',
+        author: 'Nigel Rees',
+        title: 'Sayings of the Century',
+        price: 8.95,
       },
       {
-        "category": "fiction",
-        "author": "Evelyn Waugh",
-        "title": "Sword of Honour",
-        "price": 12.99
+        category: 'fiction',
+        author: 'Evelyn Waugh',
+        title: 'Sword of Honour',
+        price: 12.99,
       },
       {
-        "category": "fiction",
-        "author": "Herman Melville",
-        "title": "Moby Dick",
-        "isbn": "0-553-21311-3",
-        "price": 8.99
+        category: 'fiction',
+        author: 'Herman Melville',
+        title: 'Moby Dick',
+        isbn: '0-553-21311-3',
+        price: 8.99,
       },
       {
-        "category": "fiction",
-        "author": "J. R. R. Tolkien",
-        "title": "The Lord of the Rings",
-        "isbn": "0-395-19395-8",
-        "price": 22.99
-      }
+        category: 'fiction',
+        author: 'J. R. R. Tolkien',
+        title: 'The Lord of the Rings',
+        isbn: '0-395-19395-8',
+        price: 22.99,
+      },
     ],
-    "bicycle": {
-      "color": "red",
-      "price": 19.95
-    }
-  }
+    bicycle: {
+      color: 'red',
+      price: 19.95,
+    },
+  },
 };
 
 const pf = (fn) =>
@@ -55,9 +55,9 @@ describe('pick()', () => {
     const res = pick`books[0].author`({
       books: [
         {
-          author: 'Garry'
-        }
-      ]
+          author: 'Garry',
+        },
+      ],
     });
     expect(res).toBe('Garry');
   });
@@ -67,18 +67,18 @@ describe('pick()', () => {
     const res = picker({
       books: [
         {
-          author: 'Garry'
+          author: 'Garry',
         },
         {
-          author: 'John'
+          author: 'John',
         },
-      ]
+      ],
     });
     expect(res).toEqual({author: 'John'});
   });
 
   test('can pick filter', () => {
-    const picker = pick`books${b => b.price > 10}`;
+    const picker = pick`books${(b) => b.price > 10}`;
     const res = picker({
       books: [
         {
@@ -89,16 +89,18 @@ describe('pick()', () => {
           author: 'John',
           price: 12,
         },
-      ]
+      ],
     });
-    expect(res).toEqual([{
-      author: 'John',
-      price: 12,
-    }]);
+    expect(res).toEqual([
+      {
+        author: 'John',
+        price: 12,
+      },
+    ]);
   });
 
   test('can pick after filtering', () => {
-    const picker = pick`books${b => b.price > 10}[0].author`;
+    const picker = pick`books${(b) => b.price > 10}[0].author`;
     const res = picker({
       books: [
         {
@@ -109,13 +111,13 @@ describe('pick()', () => {
           author: 'John',
           price: 12,
         },
-      ]
+      ],
     });
     expect(res).toEqual('John');
   });
 
   test('can filter object keys', () => {
-    const picker = pick`${b => b.time > 110}[0].name`;
+    const picker = pick`${(b) => b.time > 110}[0].name`;
     const res = picker({
       a: {
         time: 100,
@@ -166,12 +168,7 @@ describe('JSONPath examples', () => {
   test('select authors of all books', () => {
     const picker = pick`store.book${Boolean}->author`;
     const res = picker(data);
-    expect(res).toEqual([
-      "Nigel Rees",
-      "Evelyn Waugh",
-      "Herman Melville",
-      "J. R. R. Tolkien",
-    ]);
+    expect(res).toEqual(['Nigel Rees', 'Evelyn Waugh', 'Herman Melville', 'J. R. R. Tolkien']);
   });
 
   // XPath: /store/book/author
@@ -179,12 +176,7 @@ describe('JSONPath examples', () => {
   test('select authors of all books, using map operator', () => {
     const picker = pick`store.book${0}->author`;
     const res = picker(data);
-    expect(res).toEqual([
-      "Nigel Rees",
-      "Evelyn Waugh",
-      "Herman Melville",
-      "J. R. R. Tolkien",
-    ]);
+    expect(res).toEqual(['Nigel Rees', 'Evelyn Waugh', 'Herman Melville', 'J. R. R. Tolkien']);
   });
 
   // XPath: /store/*
@@ -213,31 +205,62 @@ describe('JSONPath examples', () => {
     const picker = pick`store.book${':2'}`;
     pf(picker);
     const res = picker(data);
-    expect(res).toEqual([
-      data.store.book[0],
-      data.store.book[1],
-    ]);
+    expect(res).toEqual([data.store.book[0], data.store.book[1]]);
   });
 
   test('select category and author from all books', () => {
     const picker = pick`store.book${''}->{category,author}`;
     const res = picker(data);
-    expect(res).toEqual([ { category: 'reference', author: 'Nigel Rees' },
-      { category: 'fiction', author: 'Evelyn Waugh' },
-      { category: 'fiction', author: 'Herman Melville' },
-      { category: 'fiction', author: 'J. R. R. Tolkien' } ]);
+    expect(res).toEqual([
+      {category: 'reference', author: 'Nigel Rees'},
+      {category: 'fiction', author: 'Evelyn Waugh'},
+      {category: 'fiction', author: 'Herman Melville'},
+      {category: 'fiction', author: 'J. R. R. Tolkien'},
+    ]);
   });
 
   test('select range after mapping object', () => {
     const picker = pick`store.book${''}->{category,author}${'1:3'}`;
     const res = picker(data);
-    expect(res).toEqual([ { category: 'fiction', author: 'Evelyn Waugh' },
-      { category: 'fiction', author: 'Herman Melville' } ]);
+    expect(res).toEqual([
+      {category: 'fiction', author: 'Evelyn Waugh'},
+      {category: 'fiction', author: 'Herman Melville'},
+    ]);
   });
 
   test('pick object keys', () => {
     const picker = pick`{a, b}`;
     const res = picker({a: 'a', b: 'b', c: 'c'});
     expect(res).toEqual({a: 'a', b: 'b'});
+  });
+
+  test('select books with ISBN', () => {
+    const picker = pick`store.book${(b) => b.isbn}`;
+    const res = picker(data);
+    expect(res).toEqual([
+      {category: 'fiction', author: 'Herman Melville', title: 'Moby Dick', isbn: '0-553-21311-3', price: 8.99},
+      {
+        category: 'fiction',
+        author: 'J. R. R. Tolkien',
+        title: 'The Lord of the Rings',
+        isbn: '0-395-19395-8',
+        price: 22.99,
+      },
+    ]);
+  });
+
+  test('select books with price higher than 10', () => {
+    const picker = pick`store.book${(b) => b.price > 10}`;
+    const res = picker(data);
+    expect(res).toEqual([
+      {category: 'fiction', author: 'Evelyn Waugh', title: 'Sword of Honour', price: 12.99},
+      {
+        category: 'fiction',
+        author: 'J. R. R. Tolkien',
+        title: 'The Lord of the Rings',
+        isbn: '0-395-19395-8',
+        price: 22.99,
+      },
+    ]);
   });
 });

@@ -1,18 +1,18 @@
-import {BlockStatement, AnyStatementOrExpression, block} from "./statements";
-import {Expression} from "./expressions";
+import {BlockStatement, AnyStatementOrExpression, block} from './statements';
+import {Expression} from './expressions';
 
 export class Function {
   args: Expression;
   body: BlockStatement;
   isAsync: boolean;
 
-  constructor (args: Expression, body: BlockStatement, isAsync?: boolean) {
+  constructor(args: Expression, body: BlockStatement, isAsync?: boolean) {
     this.args = args;
     this.body = body;
     this.isAsync = !!isAsync;
   }
 
-  toString () {
+  toString() {
     return `${this.isAsync ? 'async ' : ''}function(${this.args})${this.body}`;
   }
 }
@@ -22,17 +22,16 @@ export class ArrowFunction {
   body: BlockStatement;
   isAsync: boolean;
 
-  constructor (args: Expression, body: BlockStatement, isAsync?: boolean) {
+  constructor(args: Expression, body: BlockStatement, isAsync?: boolean) {
     this.args = args;
     this.body = body;
     this.isAsync = !!isAsync;
   }
 
-  toString () {
+  toString() {
     return `${this.isAsync ? 'async' : ''}(${this.args})=>${this.body}`;
   }
 }
-
 
 export const fn = (args: Expression, body: AnyStatementOrExpression[] | BlockStatement, isAsync?: boolean) => {
   if (Array.isArray(body)) {

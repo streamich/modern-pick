@@ -9,7 +9,7 @@ export class Expression {
   // Whether not to wrap operands into parens.
   noParens: boolean;
 
-  constructor (opops: OperandOrOperator[], prefixOperator?: boolean, noParens?: boolean) {
+  constructor(opops: OperandOrOperator[], prefixOperator?: boolean, noParens?: boolean) {
     this.opops = opops;
     this.prefixOperator = !!prefixOperator;
     this.noParens = !!noParens;
@@ -22,9 +22,7 @@ export class Expression {
       const isOperand = prefixOperator ? !!(i % 2) : !(i % 2);
       const isExpression = op instanceof Expression;
       const evaluated = String(op);
-      return !noParens && isOperand && isExpression
-        ? acc + '(' + evaluated + ')'
-        : acc + evaluated;
+      return !noParens && isOperand && isExpression ? acc + '(' + evaluated + ')' : acc + evaluated;
     }, '');
   }
 }
@@ -42,6 +40,5 @@ export const args = (...list: Operand[]) => {
   list2.push(list[list.length - 1]);
   return new Expression(list2, false, true);
 };
-export const call = (left: Operand, ...list: Operand[]) =>
-  new Expression([left, '(', args(...list), ')'], false, true);
+export const call = (left: Operand, ...list: Operand[]) => new Expression([left, '(', args(...list), ')'], false, true);
 export const rest = (identifier: Operand) => new Expression(['...', identifier], true, true);

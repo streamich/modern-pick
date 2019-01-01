@@ -13,13 +13,11 @@ const rangeToPredicate = (range: string) => {
 
   return (value, i, len) => {
     let xstart = start >= 0 ? start : len + start;
-    let xend = endSpecified
-      ? end >= 0 ? end : len + end
-      : len;
+    let xend = endSpecified ? (end >= 0 ? end : len + end) : len;
     if (xend < xstart) [xstart, xend] = [xend, xstart];
     if (i < xstart) return false;
     if (i >= xend) return false;
-    return ((i - xstart) % step) ? false : true;
+    return (i - xstart) % step ? false : true;
   };
 };
 
@@ -30,7 +28,10 @@ const rangeToPredicate = (range: string) => {
  *
  * `x` is a list of interpolations.
  */
-export const pick = <A, B>(accessors: TemplateStringsArray, ...interpolations: (number | string | Function)[]): Picker<A, B> => {
+export const pick = <A, B>(
+  accessors: TemplateStringsArray,
+  ...interpolations: (number | string | Function)[]
+): Picker<A, B> => {
   const arr = 'Array.isArray(_)?_:Object.values(_)';
 
   const applyAccessor = (accessor: string) => {
@@ -40,8 +41,7 @@ export const pick = <A, B>(accessors: TemplateStringsArray, ...interpolations: (
         `_=((${accessor})=>(${accessor}))(_);`
       );
     } else {
-      if ((accessor[0] !== '.') && (accessor[0] !== '['))
-        accessor = '.' + accessor;
+      if (accessor[0] !== '.' && accessor[0] !== '[') accessor = '.' + accessor;
       // prettier-ignore
       return (
         `_=_${accessor};`
@@ -62,8 +62,7 @@ export const pick = <A, B>(accessors: TemplateStringsArray, ...interpolations: (
         '});'
       );
     } else {
-      if ((accessor[0] !== '.') && (accessor[0] !== '['))
-        accessor = '.' + accessor;
+      if (accessor[0] !== '.' && accessor[0] !== '[') accessor = '.' + accessor;
       // prettier-ignore
       return (
         `_=(${arr}).map(function(v){` +
@@ -103,7 +102,7 @@ export const pick = <A, B>(accessors: TemplateStringsArray, ...interpolations: (
     } else if (interpolation instanceof Function) {
       body += applyFilter(i);
       currentValueIsArray = true;
-    } else if(typeof interpolation === 'string') {
+    } else if (typeof interpolation === 'string') {
       interpolations[i] = rangeToPredicate(interpolation);
       body += applyFilter(i);
       currentValueIsArray = true;
