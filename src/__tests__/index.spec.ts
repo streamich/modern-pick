@@ -47,12 +47,12 @@ describe('pick()', () => {
   });
 
   test('can pick object value', () => {
-    const res = pick`value`({value: 123});
+    const res = pick`value`()({value: 123});
     expect(res).toBe(123);
   });
 
   test('can pick from nested array', () => {
-    const res = pick`books[0].author`({
+    const res = pick`books[0].author`()({
       books: [
         {
           author: 'Garry',
@@ -63,7 +63,7 @@ describe('pick()', () => {
   });
 
   test('can pick object', () => {
-    const picker = pick`books[1]`;
+    const picker = pick`books[1]`();
     const res = picker({
       books: [
         {
@@ -78,7 +78,7 @@ describe('pick()', () => {
   });
 
   test('can pick filter', () => {
-    const picker = pick`books${(b) => b.price > 10}`;
+    const picker = pick`books${(b) => b.price > 10}`();
     const res = picker({
       books: [
         {
@@ -100,7 +100,7 @@ describe('pick()', () => {
   });
 
   test('can pick after filtering', () => {
-    const picker = pick`books${(b) => b.price > 10}[0].author`;
+    const picker = pick`books${(b) => b.price > 10}[0].author`();
     const res = picker({
       books: [
         {
@@ -117,7 +117,7 @@ describe('pick()', () => {
   });
 
   test('can filter object keys', () => {
-    const picker = pick`${(b) => b.time > 110}[0].name`;
+    const picker = pick`${(b) => b.time > 110}[0].name`();
     const res = picker({
       a: {
         time: 100,
@@ -132,31 +132,31 @@ describe('pick()', () => {
   });
 
   test('can select range', () => {
-    const picker = pick`${'0:3'}`;
+    const picker = pick`${'0:3'}`();
     const res = picker([0, 1, 2, 3, 4, 5, 6]);
     expect(res).toEqual([0, 1, 2]);
   });
 
   test('can select last element', () => {
-    const picker = pick`${'-1:'}`;
+    const picker = pick`${'-1:'}`();
     const res = picker([0, 1, 2, 3, 4, 5, 6]);
     expect(res).toEqual([6]);
   });
 
   test('exclude last element', () => {
-    const picker = pick`${':-1'}`;
+    const picker = pick`${':-1'}`();
     const res = picker([0, 1, 2, 3, 4, 5, 6]);
     expect(res).toEqual([0, 1, 2, 3, 4, 5]);
   });
 
   test('select even elements', () => {
-    const picker = pick`${'::2'}`;
+    const picker = pick`${'::2'}`();
     const res = picker([0, 1, 2, 3, 4, 5, 6]);
     expect(res).toEqual([0, 2, 4, 6]);
   });
 
   test('select odd elements', () => {
-    const picker = pick`${'1::2'}`;
+    const picker = pick`${'1::2'}`();
     const res = picker([0, 1, 2, 3, 4, 5, 6]);
     expect(res).toEqual([1, 3, 5]);
   });
@@ -166,7 +166,7 @@ describe('JSONPath examples', () => {
   // XPath: /store/book/author
   // JSONPath: $.store.book[*].author
   test('select authors of all books', () => {
-    const picker = pick`store.book${Boolean}->author`;
+    const picker = pick`store.book${Boolean}->author`();
     const res = picker(data);
     expect(res).toEqual(['Nigel Rees', 'Evelyn Waugh', 'Herman Melville', 'J. R. R. Tolkien']);
   });
@@ -174,7 +174,7 @@ describe('JSONPath examples', () => {
   // XPath: /store/book/author
   // JSONPath: $.store.book[*].author
   test('select authors of all books, using map operator', () => {
-    const picker = pick`store.book${0}->author`;
+    const picker = pick`store.book${0}->author`();
     const res = picker(data);
     expect(res).toEqual(['Nigel Rees', 'Evelyn Waugh', 'Herman Melville', 'J. R. R. Tolkien']);
   });
@@ -182,32 +182,32 @@ describe('JSONPath examples', () => {
   // XPath: /store/*
   // JSONPath: $.store.*
   test('All things in store', () => {
-    const picker = pick<any, any>`store${''}`;
+    const picker = pick<any, any>`store${''}`();
     const res = picker(data);
     expect(res).toBeInstanceOf(Array);
     expect(res.length).toBe(2);
   });
 
   test('select third book', () => {
-    const picker = pick`store.book[2]`;
+    const picker = pick`store.book[2]`();
     const res = picker(data);
     expect(res).toEqual(data.store.book[2]);
   });
 
   test('select last book', () => {
-    const picker = pick`store.book${'-1:'}[0]`;
+    const picker = pick`store.book${'-1:'}[0]`();
     const res = picker(data);
     expect(res).toEqual(data.store.book[data.store.book.length - 1]);
   });
 
   test('select fist two books', () => {
-    const picker = pick`store.book${':2'}`;
+    const picker = pick`store.book${':2'}`();
     const res = picker(data);
     expect(res).toEqual([data.store.book[0], data.store.book[1]]);
   });
 
   test('select category and author from all books', () => {
-    const picker = pick`store.book${''}->{category,author}`;
+    const picker = pick`store.book${''}->{category,author}`();
     const res = picker(data);
     expect(res).toEqual([
       {category: 'reference', author: 'Nigel Rees'},
@@ -218,7 +218,7 @@ describe('JSONPath examples', () => {
   });
 
   test('select range after mapping object', () => {
-    const picker = pick`store.book${''}->{category,author}${'1:3'}`;
+    const picker = pick`store.book${''}->{category,author}${'1:3'}`();
     const res = picker(data);
     expect(res).toEqual([
       {category: 'fiction', author: 'Evelyn Waugh'},
@@ -227,13 +227,13 @@ describe('JSONPath examples', () => {
   });
 
   test('pick object keys', () => {
-    const picker = pick`{a, b}`;
+    const picker = pick`{a, b}`();
     const res = picker({a: 'a', b: 'b', c: 'c'});
     expect(res).toEqual({a: 'a', b: 'b'});
   });
 
   test('select books with ISBN', () => {
-    const picker = pick`store.book${(b) => b.isbn}`;
+    const picker = pick`store.book${(b) => b.isbn}`();
     const res = picker(data);
     expect(res).toEqual([
       {category: 'fiction', author: 'Herman Melville', title: 'Moby Dick', isbn: '0-553-21311-3', price: 8.99},
@@ -248,7 +248,7 @@ describe('JSONPath examples', () => {
   });
 
   test('select books with price higher than 10', () => {
-    const picker = pick`store.book${(b) => b.price > 10}`;
+    const picker = pick`store.book${(b) => b.price > 10}`();
     const res = picker(data);
     expect(res).toEqual([
       {category: 'fiction', author: 'Evelyn Waugh', title: 'Sword of Honour', price: 12.99},

@@ -1,4 +1,5 @@
 export type Picker<A, B> = (data: A) => B;
+export type CustomizablePicker<A, B> = (...args: any[]) => Picker<A, B>;
 
 const REG_TRIM = /^\s+|\s+$/g;
 const trim = (str: string): string => str.replace(REG_TRIM, '');
@@ -90,7 +91,7 @@ const codegenFilter = (index: number) => {
 export const pick = <A, B>(
   accessors: TemplateStringsArray,
   ...interpolations: (number | string | Function)[]
-): Picker<A, B> => {
+): CustomizablePicker<A, B> => {
   let currentValueIsArray = false;
   let nextInterpolationIsMap = false;
   let nextInterpolationIsAccessor = false;
@@ -166,10 +167,7 @@ export const pick = <A, B>(
   // console.log(require('js-beautify').js_beautify(code, {indent_size: 2}));
 
   // tslint:disable-next-line no-eval ban
-  let picker = eval(code)(interpolations);
-  if (!functionalInterpolationAccessorIndex) picker = picker();
-
-  return picker;
+  return eval(code)(interpolations) as CustomizablePicker<A, B>;
 };
 
 export const idx = selector => (state, def?) => {

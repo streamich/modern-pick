@@ -49,7 +49,7 @@ test('getUserById()', () => {
 
 
 test('pick normalized data by ID', () => {
-  const picker = (userId) => pick<any, any>`users.byId.${userId}`;
+  const picker = (userId) => pick<any, any>`users.byId.${userId}`();
   const res = picker(2)(state);
   expect(res.name).toBe('Maria');
 });
@@ -61,7 +61,7 @@ test('pick normalized data by ID - pregenerate selector arguments', () => {
 });
 
 test('complex query - 1', () => {
-  const picker = pick<any,any>`users.byId${({age}) => age > 18}${'1:5'}->{id}`;
+  const picker = pick<any,any>`users.byId${({age}) => age > 18}${'1:5'}->{id}`();
   const res = picker(state);
   expect(res).toEqual([ { id: 3 }, { id: 4 } ]);
 });
@@ -73,7 +73,7 @@ test('complex query - 2', () => {
     ${'1:5'}
     ->
     {id}
-  `;
+  `();
   const res = picker(state);
   expect(res).toEqual([ { id: 3 }, { id: 4 } ]);
 });
