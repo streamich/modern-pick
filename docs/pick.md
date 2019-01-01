@@ -93,7 +93,7 @@ selector(3)({
       id: 3,
     }
   }
-}); // 👉{id: 3}
+}); // 👉 {id: 3}
 ```
 
 Using functional accessors is great because you can compile your selector
@@ -126,8 +126,8 @@ syntax.
 
 ## `->` Mapping Accessors and Destructuring
 
-Instead of apploying your accessors directly to the state, you can *map* it.
-This will apploy your *accessors* or *destructuring* to each element element
+Instead of applying your accessors directly to the state, you can *map* them.
+This will apply your *accessors* or *destructuring* to each element
 using the `.map()` method.
 
 ```js
