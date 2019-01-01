@@ -160,13 +160,18 @@ describe('pick()', () => {
   });
 });
 
-xdescribe('JSONPath examples', () => {
+describe('JSONPath examples', () => {
   // XPath: /store/book/author
   // JSONPath: $.store.book[*].author
   test('select authors of all books', () => {
-    const picker = pick`store.book${Boolean}author`;
+    const picker = pick`store.book${Boolean}>author`;
     pf(picker);
     const res = picker(data);
-    expect(res).toEqual([1, 3, 5]);
+    expect(res).toEqual([
+      "Nigel Rees",
+      "Evelyn Waugh",
+      "Herman Melville",
+      "J. R. R. Tolkien",
+    ]);
   });
 });

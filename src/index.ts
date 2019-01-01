@@ -30,6 +30,8 @@ const rangeToPredicate = (range: string) => {
  * `x` is a list of interpolations.
  */
 export const pick = <A, B>(accessors: TemplateStringsArray, ...interpolations: (string | Function)[]): Picker<A, B> => {
+  const arr = 'Array.isArray(_)?_:Object.values(_)';
+
   const applyAccessor = (accessor: string) => {
     if ((accessor[0] !== '.') && (accessor[0] !== '['))
       accessor = '.' + accessor;
@@ -39,14 +41,28 @@ export const pick = <A, B>(accessors: TemplateStringsArray, ...interpolations: (
     );
   };
 
-  const arr = 'Array.isArray(_)?_:Object.values(_)';
+  const applyAccessorMap = (accessor: string) => {
+    if ((accessor[0] !== '.') && (accessor[0] !== '['))
+      accessor = '.' + accessor;
+    // prettier-ignore
+    return (
+      `_=(${arr}).map(function(v){` +
+        'try{' +
+          `return v${accessor}` +
+        '}catch(e){' +
+          'return d' +
+        '}' +
+      '});'
+    );
+  };
 
   const applyFilter = (index: number) => {
     // prettier-ignore
     return (
-      `_=(${arr}).filter(function(v,i){` +
+      `var arr=${arr};` +
+      `_=arr.filter(function(v,i){` +
         'try{' +
-          `return x[${index}](v,i,_.length,_,$)` +
+          `return x[${index}](v,i,arr.length,arr,_,$)` +
         '}catch(e){' +
           'return false' +
         '}' +
@@ -56,19 +72,34 @@ export const pick = <A, B>(accessors: TemplateStringsArray, ...interpolations: (
 
   const accessor = trim(accessors[0]);
   let body: string = accessor ? applyAccessor(accessor) : '';
+  let currentValueIsArray = false;
+  let nextInterpolationIsMap = false;
 
   for (let i = 0; i < interpolations.length; i++) {
     const interpolation = interpolations[i];
-    if (interpolation instanceof Function) {
+    if (nextInterpolationIsMap) {
+      // TODO: not implemented.
+    } else if (interpolation instanceof Function) {
       body += applyFilter(i);
+      currentValueIsArray = true;
     } else if(typeof interpolation === 'string') {
       interpolations[i] = rangeToPredicate(interpolation);
       body += applyFilter(i);
+      currentValueIsArray = true;
     }
 
     const accessor = trim(accessors[i + 1]);
     if (accessor) {
-      body += applyAccessor(accessor);
+      if (accessor[0] === '>') {
+        if (accessor.length === 1) {
+          nextInterpolationIsMap = true;
+        } else {
+          body += applyAccessorMap(accessor.substr(1));
+        }
+        currentValueIsArray = true;
+      } else {
+        body += applyAccessor(accessor);
+      }
     }
   }
 
