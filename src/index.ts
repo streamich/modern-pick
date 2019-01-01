@@ -1,5 +1,5 @@
 export type Picker<A, B> = (data: A) => B;
-export type CustomizablePicker<A, B> = (...args: any[]) => Picker<A, B>;
+export type ParametrizedPicker<A, B> = (...args: any[]) => Picker<A, B>;
 
 const REG_TRIM = /^\s+|\s+$/g;
 const trim = (str: string): string => str.replace(REG_TRIM, '');
@@ -73,7 +73,9 @@ const codegenFilter = (index: number) => {
     `var arr=${arr};` +
     `_=arr.filter(function(v,i){` +
       'try{' +
-        `return x[${index}](v,i,arr.length,arr,_,$)` +
+        `var r=x[${index}](v,i,arr.length,arr,_,$);` +
+        'console.log(a);' +
+        'return r instanceof Function ? r.apply(null, a) : r' +
       '}catch(e){' +
         'return false' +
       '}' +
@@ -91,7 +93,7 @@ const codegenFilter = (index: number) => {
 export const pick = <A, B>(
   accessors: TemplateStringsArray,
   ...interpolations: (number | string | Function)[]
-): CustomizablePicker<A, B> => {
+): ParametrizedPicker<A, B> => {
   let currentValueIsArray = false;
   let nextInterpolationIsMap = false;
   let nextInterpolationIsAccessor = false;
@@ -118,10 +120,7 @@ export const pick = <A, B>(
     }
   };
 
-  applyAccessor(accessors[0]);
-
-  for (let i = 0; i < interpolations.length; i++) {
-    const interpolation = interpolations[i];
+  const applyInterpolation = (interpolation, i) => {
     if (nextInterpolationIsAccessor) {
       if (interpolation instanceof Function) {
         const accessor = `[a[${functionalInterpolationAccessorIndex}]]`;
@@ -141,7 +140,12 @@ export const pick = <A, B>(
       body += codegenFilter(i);
       currentValueIsArray = true;
     }
+  };
 
+  applyAccessor(accessors[0]);
+
+  for (let i = 0; i < interpolations.length; i++) {
+    applyInterpolation(interpolations[i], i);
     nextInterpolationIsAccessor = false;
     applyAccessor(accessors[i + 1]);
   }
@@ -150,7 +154,7 @@ export const pick = <A, B>(
   const code: string =
     '(function(x){' +
       'return function(){' +
-        'var a=arguments;' +
+        'var a=Array.prototype.slice.call(arguments);' +
         'return function($,d){' +
           'var _=$;' +
           'try{' +
@@ -167,7 +171,7 @@ export const pick = <A, B>(
   // console.log(require('js-beautify').js_beautify(code, {indent_size: 2}));
 
   // tslint:disable-next-line no-eval ban
-  return eval(code)(interpolations) as CustomizablePicker<A, B>;
+  return eval(code)(interpolations) as ParametrizedPicker<A, B>;
 };
 
 export const idx = selector => (state, def?) => {

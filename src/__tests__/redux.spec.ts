@@ -73,7 +73,18 @@ test('complex query - 2', () => {
     ${'1:5'}
     ->
     {id}
-  `();
-  const res = picker(state);
+  `;
+  const res = picker(50)(state);
   expect(res).toEqual([ { id: 3 }, { id: 4 } ]);
+});
+
+test('complex query parametrized', () => {
+  const picker = pick<any,any>`
+    users.byId
+    ${({age}) => over => age > over}
+    ->{id}
+  `;
+  // console.log(require('js-beautify').js_beautify(picker.toString(), {indent_size: 2}));
+  const res = picker(50)(state);
+  expect(res.length).toBe(1);
 });
