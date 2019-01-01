@@ -72,12 +72,12 @@ Let's break it down.
 - `${u => over => u.age > over}` &mdash; this *filter* expression is compiled to `state = state.filter(u => u.age > over)`.
 - `${'-1:'}` &mdash; this is a range expression in `start:end:step` format, it is compiled internally to a *filter*, too.
 - `->` &mdash; *map* operator `->` tells us to do `state = state.map(...)` over the result set.
-- `{id,name}` &mdash; *destructuring accessor* is internally compiled to `({id, name}) => ({id, name})`.
+- `{id,name}` &mdash; *destructuring accessor* is internally compiled to `state = (({id, name}) => ({id, name})(state)`.
 
 All-in-all the above query is compiled to a JavaScript function like this:
 
 ```js
-const picker = (over) => (state, def) => {
+const getUsersOver = (over) => (state, def) => {
   try {
     state = state.users.byId;
     state = Object.values(state);
@@ -103,13 +103,15 @@ npm i modern-pick
 Import.
 
 ```js
-import {pick, id, idx} from 'modern-pick';
+import {id, idx, pick} from 'modern-pick';
 ```
 
 
 ## Reference
 
-...
+- [`id`](./docs/id.md) &mdash; identity function
+- [`idx`](./docs/idx.md) &mdash; basic accessors
+- [`pick`](./docs/pick.md) &mdash; pimped accessors
 
 
 ## License
