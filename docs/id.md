@@ -26,5 +26,5 @@ const getPostById = postId => pick`posts.byId.${postId}`;
 ```
 
 P.S. The last example is "bad" because it will compile a new selector
-on evere `getPostById` invocation, wheras the two above will compile
-only one selector.
+on every `getPostById` invocation, whereas the two above will compile
+only once.
