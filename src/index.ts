@@ -3,6 +3,25 @@ export type Picker<A, B> = (data: A) => B;
 const REG_TRIM = /^\s+|\s+$/g;
 const trim = (str: string): string => str.replace(REG_TRIM, '');
 
+const rangeToPredicate = (range: string) => {
+  const parts = range.split(':');
+  const start = parts[0] ? Number(parts[0]) : 0;
+  const endSpecified = !!parts[1];
+  const end = parts[1] ? Number(parts[1]) : 0;
+  const step = parts[2] ? Number(parts[2]) : 1;
+
+  return (value, i, len) => {
+    let xstart = start >= 0 ? start : len + start;
+    let xend = endSpecified
+      ? end >= 0 ? end : len + end
+      : len;
+    if (xend < xstart) [xstart, xend] = [xend, xstart];
+    if (i < xstart) return false;
+    if (i >= xend) return false;
+    return ((i - xstart) % step) ? false : true;
+  };
+};
+
 /**
  * In generated code `$` refers to the root value, similar to how it is in JSONPath.
  * We cannot use `@` in JavaScript to refer to the current value though, thus
@@ -27,37 +46,11 @@ export const pick = <A, B>(accessors: TemplateStringsArray, ...interpolations: (
     return (
       `_=(${arr}).filter(function(v,i){` +
         'try{' +
-          `return x[${index}](v,i,_,$)` +
+          `return x[${index}](v,i,_.length,_,$)` +
         '}catch(e){' +
           'return false' +
         '}' +
       '});'
-    );
-  };
-
-  const applyRange = (range: string) => {
-    const parts = range.split(':');
-    const start = parts[0] ? Number(parts[0]) : 0;
-    const endSpecified = !!parts[1];
-    const end = parts[1] ? Number(parts[1]) : 0;
-    const step = parts[2] ? Number(parts[2]) : 1;
-    // prettier-ignore
-    return (
-      'var tmp=[],' +
-        `arr=${arr},` +
-        `s0=${start >= 0 ? start : `arr.length${start}`},` +
-        (endSpecified
-          ? `s1=${end >= 0 ? end : `arr.length${end}`},`
-          : 's1=arr.length,'
-        ) +
-        `step=${step};` +
-      'if(s1<s0){' +
-        'var f=s1;s1=s0;s0=f' +
-      '}' +
-      'for(var i=s0;i<s1;i+=step){' +
-        'tmp.push(arr[i])' +
-      '}' +
-      '_=tmp;'
     );
   };
 
@@ -69,7 +62,8 @@ export const pick = <A, B>(accessors: TemplateStringsArray, ...interpolations: (
     if (interpolation instanceof Function) {
       body += applyFilter(i);
     } else if(typeof interpolation === 'string') {
-      body += applyRange(interpolation);
+      interpolations[i] = rangeToPredicate(interpolation);
+      body += applyFilter(i);
     }
 
     const accessor = trim(accessors[i + 1]);
