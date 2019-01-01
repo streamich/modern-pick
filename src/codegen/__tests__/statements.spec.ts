@@ -30,9 +30,9 @@ describe('BlockStatement', () => {
     expect('' + statement).toBe('{}');
   });
 
-  test('does not insert {} for single statement', () => {
+  test('adds brackets {} for single statement', () => {
     const statement = block(expr(2, '+', 2))
-    expect('' + statement).toBe('2+2;');
+    expect('' + statement).toBe('{2+2;}');
   });
 
   test('adds {} around multiple statments', () => {
@@ -53,9 +53,9 @@ describe('IfStatement', () => {
     expect('' + statement).toBe('if(false){}');
   });
 
-  test('does not emit block {} for single statement', () => {
+  test('emits block {} for single statement', () => {
     const statement = fi(expr('a', '+', 1), block(expr('a', '++')));
-    expect('' + statement).toBe('if(a+1)a++;');
+    expect('' + statement).toBe('if(a+1){a++;}');
   });
 
   test('supports multiple statements', () => {
@@ -71,7 +71,7 @@ describe('IfStatement', () => {
       e('a', '++'),
       e(1, '+', 2),
     ));
-    expect('' + statement).toBe('if(a+1){}else {a++;1+2;}');
+    expect('' + statement).toBe('if(a+1){}else{a++;1+2;}');
   });
 
   test('supports else block statements to gether with true block', () => {
@@ -82,7 +82,7 @@ describe('IfStatement', () => {
       e('a', '++'),
       e(1, '+', 2),
     ));
-    expect('' + statement).toBe('if(a+1){a++;1+2;}else {a++;1+2;}');
+    expect('' + statement).toBe('if(a+1){a++;1+2;}else{a++;1+2;}');
   });
 
   test('single expression in both blocks', () => {
@@ -91,7 +91,7 @@ describe('IfStatement', () => {
     ), block(
       e('a', '++'),
     ));
-    expect('' + statement).toBe('if(a+1)1+2;else a++;');
+    expect('' + statement).toBe('if(a+1){1+2;}else{a++;}');
   });
 
   test('supports array as block statement', () => {
@@ -102,12 +102,12 @@ describe('IfStatement', () => {
       e('a', '++'),
       e(1, '+', 2),
     ]);
-    expect('' + statement).toBe('if(a+1){a++;1+2;}else {a++;1+2;}');
+    expect('' + statement).toBe('if(a+1){a++;1+2;}else{a++;1+2;}');
   });
 
   test('single expression instead of blocks', () => {
     const statement = fi(e('a', '+', 1), e('a'), e('b'));
-    expect('' + statement).toBe('if(a+1)a;else b;');
+    expect('' + statement).toBe('if(a+1){a;}else{b;}');
   });
 });
 

@@ -1,24 +1,32 @@
 import {Expression} from './expressions';
 
-export class Statement {
-  expressions: Expression[];
+export type AnyStatement = Statement | BlockStatement | IfStatement | ReturnStatement;
+export type AnyStatementOrExpression = AnyStatement | Expression;
 
-  constructor (expressions: Expression[]) {
+export class Statement {
+  expressions: AnyStatementOrExpression[];
+
+  constructor (expressions: AnyStatementOrExpression[]) {
     this.expressions = expressions;
   }
 
   toString () {
     if (!this.expressions.length) return '';
-    return this.expressions.map(expr => '' + expr).join(';') + ';';
+    let str = '';
+    for (const item of this.expressions) {
+      if (item instanceof Expression) {
+        str += item + ';';
+      } else {
+        str += item;
+      }
+    }
+    return str;
   }
 }
 
 export class BlockStatement extends Statement {
   toString () {
-    if (!this.expressions.length) return '{}';
-    return this.expressions.length > 1
-      ? `{${super.toString()}}`
-      : super.toString();
+    return `{${super.toString()}}`;
   }
 }
 
@@ -34,7 +42,7 @@ export class IfStatement {
   }
 
   toString () {
-    return `if(${this.test})${this.block}` + (this.elseBlock ? `else ${this.elseBlock}` : '');
+    return `if(${this.test})${this.block}` + (this.elseBlock ? `else${this.elseBlock}` : '');
   }
 }
 
@@ -51,7 +59,7 @@ export class ReturnStatement {
 }
 
 export const st = (...expressions: Expression[]) => new Statement(expressions);
-export const block = (...expressions: Expression[]) => new BlockStatement(expressions);
+export const block = (...expressions: AnyStatementOrExpression[]) => new BlockStatement(expressions);
 export const fi = (test: Expression, ifBlock: Expression | Expression[] | BlockStatement, elseBlock?: Expression | Expression[] | BlockStatement) => {
   if (ifBlock instanceof Expression) {
     ifBlock = block(ifBlock);
