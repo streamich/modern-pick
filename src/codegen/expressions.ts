@@ -27,7 +27,9 @@ export class Expression {
 }
 
 export const expr = (...opops: OperandOrOperator[]) => new Expression(opops, true);
+export const e = expr;
 export const exprPrefix = (...opops: OperandOrOperator[]) => new Expression(opops, false);
+export const ep = exprPrefix;
 export const args = (...list: Operand[]) => {
   const list2: OperandOrOperator[] = [];
   for (let i = 0; i < list.length - 1; i++) {
