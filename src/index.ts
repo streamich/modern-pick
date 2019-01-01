@@ -4,6 +4,8 @@ export type Picker<A, B> = (data: A) => B;
  * In generated code `$` refers to the root value, similar to how it is in JSONPath.
  * We cannot use `@` in JavaScript to refer to the current value though, thus
  * current value is denoted by `_`.
+ *
+ * `x` is a list of interpolations.
  */
 export const pick = <A, B>(accessors: TemplateStringsArray, ...interpolations: (string | Function)[]): Picker<A, B> => {
   const applyAccessor = (accessor: string) => {
@@ -25,7 +27,13 @@ export const pick = <A, B>(accessors: TemplateStringsArray, ...interpolations: (
   const applyFilter = (index: number) => {
     // prettier-ignore
     return (
-      `_=(Array.isArray(_)?_:Object.values(_)).filter(i[${index}]);`
+      '_=(Array.isArray(_)?_:Object.values(_)).filter(function(v,i){' +
+        'try{' +
+          `return x[${index}](v,i,_,$)` +
+        '}catch(e){' +
+          'return false' +
+        '}' +
+      '});'
       /*
       'try{' +
         `_=_.filter(i[${index}])` +
@@ -52,14 +60,14 @@ export const pick = <A, B>(accessors: TemplateStringsArray, ...interpolations: (
 
   // prettier-ignore
   const code: string =
-    '(function(i){' +
+    '(function(x){' +
       'return function($,d){' +
         'var _=$;' +
         'try{' +
           body +
           'return _' +
         '}catch(e){' +
-          // 'console.log(e);' +
+          'console.log(e);' +
           'return d' +
         '}' +
       '}' +
