@@ -2,6 +2,7 @@ export type Picker<A, B> = (data: A) => B;
 
 const REG_TRIM = /^\s+|\s+$/g;
 const trim = (str: string): string => str.replace(REG_TRIM, '');
+const MAP_OPERATOR = '->';
 
 const rangeToPredicate = (range: string) => {
   const parts = range.split(':');
@@ -29,31 +30,51 @@ const rangeToPredicate = (range: string) => {
  *
  * `x` is a list of interpolations.
  */
-export const pick = <A, B>(accessors: TemplateStringsArray, ...interpolations: (string | Function)[]): Picker<A, B> => {
+export const pick = <A, B>(accessors: TemplateStringsArray, ...interpolations: (number | string | Function)[]): Picker<A, B> => {
   const arr = 'Array.isArray(_)?_:Object.values(_)';
 
   const applyAccessor = (accessor: string) => {
-    if ((accessor[0] !== '.') && (accessor[0] !== '['))
-      accessor = '.' + accessor;
-    // prettier-ignore
-    return (
-      `_=_${accessor};`
-    );
+    if (accessor[0] === '{') {
+      // prettier-ignore
+      return (
+        `_=((${accessor})=>(${accessor}))(_);`
+      );
+    } else {
+      if ((accessor[0] !== '.') && (accessor[0] !== '['))
+        accessor = '.' + accessor;
+      // prettier-ignore
+      return (
+        `_=_${accessor};`
+      );
+    }
   };
 
   const applyAccessorMap = (accessor: string) => {
-    if ((accessor[0] !== '.') && (accessor[0] !== '['))
-      accessor = '.' + accessor;
-    // prettier-ignore
-    return (
-      `_=(${arr}).map(function(v){` +
-        'try{' +
-          `return v${accessor}` +
-        '}catch(e){' +
-          'return d' +
-        '}' +
-      '});'
-    );
+    if (accessor[0] === '{') {
+      // prettier-ignore
+      return (
+        `_=(${arr}).map((${accessor})=>{` +
+          'try{' +
+            `return ${accessor}` +
+          '}catch(e){' +
+            'return {}' +
+          '}' +
+        '});'
+      );
+    } else {
+      if ((accessor[0] !== '.') && (accessor[0] !== '['))
+        accessor = '.' + accessor;
+      // prettier-ignore
+      return (
+        `_=(${arr}).map(function(v){` +
+          'try{' +
+            `return v${accessor}` +
+          '}catch(e){' +
+            'return d' +
+          '}' +
+        '});'
+      );
+    }
   };
 
   const applyFilter = (index: number) => {
@@ -90,11 +111,11 @@ export const pick = <A, B>(accessors: TemplateStringsArray, ...interpolations: (
 
     const accessor = trim(accessors[i + 1]);
     if (accessor) {
-      if (accessor[0] === '>') {
-        if (accessor.length === 1) {
+      if (accessor.startsWith(MAP_OPERATOR)) {
+        if (accessor.length === MAP_OPERATOR.length) {
           nextInterpolationIsMap = true;
         } else {
-          body += applyAccessorMap(accessor.substr(1));
+          body += applyAccessorMap(accessor.substr(MAP_OPERATOR.length));
         }
         currentValueIsArray = true;
       } else {

@@ -164,8 +164,7 @@ describe('JSONPath examples', () => {
   // XPath: /store/book/author
   // JSONPath: $.store.book[*].author
   test('select authors of all books', () => {
-    const picker = pick`store.book${Boolean}>author`;
-    pf(picker);
+    const picker = pick`store.book${Boolean}->author`;
     const res = picker(data);
     expect(res).toEqual([
       "Nigel Rees",
@@ -173,5 +172,72 @@ describe('JSONPath examples', () => {
       "Herman Melville",
       "J. R. R. Tolkien",
     ]);
+  });
+
+  // XPath: /store/book/author
+  // JSONPath: $.store.book[*].author
+  test('select authors of all books, using map operator', () => {
+    const picker = pick`store.book${0}->author`;
+    const res = picker(data);
+    expect(res).toEqual([
+      "Nigel Rees",
+      "Evelyn Waugh",
+      "Herman Melville",
+      "J. R. R. Tolkien",
+    ]);
+  });
+
+  // XPath: /store/*
+  // JSONPath: $.store.*
+  test('All things in store', () => {
+    const picker = pick<any, any>`store${''}`;
+    const res = picker(data);
+    expect(res).toBeInstanceOf(Array);
+    expect(res.length).toBe(2);
+  });
+
+  test('select third book', () => {
+    const picker = pick`store.book[2]`;
+    const res = picker(data);
+    expect(res).toEqual(data.store.book[2]);
+  });
+
+  test('select last book', () => {
+    const picker = pick`store.book${'-1:'}[0]`;
+    pf(picker);
+    const res = picker(data);
+    expect(res).toEqual(data.store.book[data.store.book.length - 1]);
+  });
+
+  test('select fist two books', () => {
+    const picker = pick`store.book${':2'}`;
+    pf(picker);
+    const res = picker(data);
+    expect(res).toEqual([
+      data.store.book[0],
+      data.store.book[1],
+    ]);
+  });
+
+  test('select category and author from all books', () => {
+    const picker = pick`store.book${''}->{category,author}`;
+    const res = picker(data);
+    expect(res).toEqual([ { category: 'reference', author: 'Nigel Rees' },
+      { category: 'fiction', author: 'Evelyn Waugh' },
+      { category: 'fiction', author: 'Herman Melville' },
+      { category: 'fiction', author: 'J. R. R. Tolkien' } ]);
+  });
+
+  test('select range after mapping object', () => {
+    const picker = pick`store.book${''}->{category,author}${'1:3'}`;
+    const res = picker(data);
+    expect(res).toEqual([ { category: 'fiction', author: 'Evelyn Waugh' },
+      { category: 'fiction', author: 'Herman Melville' } ]);
+  });
+
+  test('pick object keys', () => {
+    const picker = pick`{a, b}`;
+    const res = picker({a: 'a', b: 'b', c: 'c'});
+    expect(res).toEqual({a: 'a', b: 'b'});
   });
 });
