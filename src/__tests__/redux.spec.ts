@@ -72,7 +72,8 @@ test('complex query - 2', () => {
     ${({age}) => age > 18}
     ${'1:5'}
     ->
-    {id}`;
+    {id}
+  `;
   const res = picker(state);
   expect(res).toEqual([ { id: 3 }, { id: 4 } ]);
 });
